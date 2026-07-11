@@ -20,20 +20,28 @@
   display: flex;
   flex-direction: column;
   padding: 0.85rem 1rem 0.85rem;
-  overflow-y: auto;
+  overflow: hidden;
   min-width: 0;
+}
+
+/* La grilla sí tiene scroll */
+.pos-grid-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 /* ── BUSCADOR ── */
 .pos-search-bar {
   margin-bottom: 0.75rem;
+  flex-shrink: 0;
 }
 
 .pos-search-bar input {
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.8rem 1rem;
   border-radius: 12px;
-  border: 1.5px solid #CBD5E1;
+  border: 2px solid #CBD5E1;
   background: #FFFFFF;
   color: #0F172A;
   font-size: 0.95rem;
@@ -54,10 +62,14 @@
   display: flex;
   gap: 0.5rem;
   overflow-x: auto;
-  padding-bottom: 0.6rem;
-  margin-bottom: 0.85rem;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.9rem;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+  /* Asegurar que se vean siempre */
+  flex-shrink: 0;
+  min-height: 44px;
+  align-items: center;
 }
 
 .pos-cats::-webkit-scrollbar { display: none; }
@@ -65,23 +77,24 @@
 .pos-cat {
   display: inline-flex;
   align-items: center;
-  padding: 0.45rem 1.05rem;
+  padding: 0.55rem 1.2rem;
   border-radius: 999px;
-  border: 1.5px solid #CBD5E1;
-  background: #FFFFFF;
-  color: #475569;
-  font-size: 0.84rem;
+  border: 2px solid #94A3B8;
+  background: #EEF2F7;
+  color: #334155;
+  font-size: 0.88rem;
   font-weight: 700;
   white-space: nowrap;
   cursor: pointer;
   flex-shrink: 0;
   transition: all 0.17s ease;
-  box-shadow: 0 1px 3px rgba(15,23,42,0.04);
+  box-shadow: 0 1px 4px rgba(15,23,42,0.07);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .pos-cat:hover {
-  background: #F1F5F9;
-  border-color: #94A3B8;
+  background: #E2E8F0;
+  border-color: #64748B;
   color: #0F172A;
 }
 
@@ -89,7 +102,7 @@
   background: #D97706;
   border-color: #D97706;
   color: #FFFFFF;
-  box-shadow: 0 3px 10px rgba(217,119,6,0.35);
+  box-shadow: 0 3px 10px rgba(217,119,6,0.4);
 }
 
 /* ── GRILLA DE PRODUCTOS ── */
@@ -563,14 +576,22 @@
     overflow: hidden;
   }
 
-  /* El catálogo ocupa todo el espacio disponible */
+  /* El catálogo: flex column, NO hace scroll global */
   .pos-catalog {
     flex: 1;
     padding: 0.75rem 0.75rem 0;
-    overflow-y: auto;
-    /* Espacio para el bottom panel fijo: handle + footer (~190px) */
-    padding-bottom: 200px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
     min-height: 0;
+  }
+
+  /* Solo la grilla hace scroll con espacio para el bottom panel */
+  .pos-grid-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    padding-bottom: 12px;
   }
 
   .pos-grid {

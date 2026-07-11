@@ -154,32 +154,35 @@ const PuntoDeVenta = () => {
           ))}
         </div>
 
-        {/* Grilla de productos */}
-        {loading ? (
-          <div className="pos-msg">Cargando productos...</div>
-        ) : error ? (
-          <div className="pos-msg err">{error}</div>
-        ) : productosFiltrados.length === 0 ? (
-          <div className="pos-msg">No hay productos aquí.</div>
-        ) : (
-          <div className="pos-grid">
-            {productosFiltrados.map((prod) => {
-              const inTicket = ticketItems.find((i) => i.id_producto === prod.id);
-              return (
-                <button
-                  key={prod.id}
-                  className={`pos-card${inTicket ? ' sel' : ''}`}
-                  onClick={() => agregarAlTicket(prod)}
-                >
-                  {inTicket && <span className="pos-badge">{inTicket.cantidad}</span>}
-                  <span className="pos-card-name">{prod.nombre}</span>
-                  <span className="pos-card-price">Bs. {parseFloat(prod.precio).toFixed(2)}</span>
-                </button>
-              );
-            })}
-          </div>
-        )}
+        {/* Grilla de productos — solo esta parte hace scroll */}
+        <div className="pos-grid-wrapper">
+          {loading ? (
+            <div className="pos-msg">Cargando productos...</div>
+          ) : error ? (
+            <div className="pos-msg err">{error}</div>
+          ) : productosFiltrados.length === 0 ? (
+            <div className="pos-msg">No hay productos aquí.</div>
+          ) : (
+            <div className="pos-grid">
+              {productosFiltrados.map((prod) => {
+                const inTicket = ticketItems.find((i) => i.id_producto === prod.id);
+                return (
+                  <button
+                    key={prod.id}
+                    className={`pos-card${inTicket ? ' sel' : ''}`}
+                    onClick={() => agregarAlTicket(prod)}
+                  >
+                    {inTicket && <span className="pos-badge">{inTicket.cantidad}</span>}
+                    <span className="pos-card-name">{prod.nombre}</span>
+                    <span className="pos-card-price">Bs. {parseFloat(prod.precio).toFixed(2)}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
+
 
       {/* ══ TICKET / BOTTOM PANEL ══ */}
       <aside className={`pos-ticket${ticketOpen ? ' open' : ''}`}>
