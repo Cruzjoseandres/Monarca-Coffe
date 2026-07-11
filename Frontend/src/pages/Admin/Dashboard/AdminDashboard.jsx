@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Container, Row, Col, Spinner, Table, Form } from 'react-bootstrap';
 import { useNavigate, Link } from 'react-router-dom';
 import ReporteService from '../../../../services/ReporteService';
-import { getQRUrl, uploadQR } from '../../../../services/CuentaService';
+import { getQRUrl, uploadQR } from '../../../../services/QRService';
 import { useNotification } from '../../../../hooks/useNotification';
 import './AdminDashboard.css';
 

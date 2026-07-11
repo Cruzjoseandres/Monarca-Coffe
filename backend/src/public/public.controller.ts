@@ -1,8 +1,10 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Post, Param, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Producto } from '../producto/entities/producto.entity';
 import { Categoria } from '../categoria/entities/categoria.entity';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Controller('public')
 export class PublicController {
@@ -11,7 +13,24 @@ export class PublicController {
         private productoRepository: Repository<Producto>,
         @InjectRepository(Categoria)
         private categoriaRepository: Repository<Categoria>,
+        private cloudinaryService: CloudinaryService,
     ) { }
+
+    @Get('qr')
+    async getQR() {
+        const url = await this.cloudinaryService.getLatestQRUrl();
+        return { url };
+    }
+
+    @Post('qr')
+    @UseInterceptors(FileInterceptor('file'))
+    async uploadQR(@UploadedFile() file: any) {
+        if (!file) {
+            return { url: null };
+        }
+        const url = await this.cloudinaryService.uploadImage(file.buffer, 'cafeteria_qr');
+        return { url };
+    }
 
     @Get('menu')
     async getMenu() {
