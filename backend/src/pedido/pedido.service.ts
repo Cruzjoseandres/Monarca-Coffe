@@ -34,7 +34,7 @@ export class PedidoService {
           where: { id: det.id_producto, D_E_L_E_T_E_D: false },
         });
         if (producto) {
-          const precio = Number(producto.precio) || 0;
+          const precio = Number(det.precio_unitario || producto.precio) || 0;
           const subtotal = precio * det.cantidad;
           totalPedido += subtotal;
 
@@ -42,33 +42,54 @@ export class PedidoService {
             producto: { id: producto.id },
             cantidad: det.cantidad,
             subtotal: subtotal,
-            comentario: det.comentario || '',
+            comentario: det.comentario || det.observaciones || '',
           });
           detallesEntidades.push(detalle);
         }
       }
     }
 
-    const cobro = createPedidoDto.cobro;
-    const isPagado = cobro && cobro.tipo_pago && cobro.tipo_pago !== 'Pendiente';
+    const cobro = createPedidoDto.cobro || {
+      tipo_pago: createPedidoDto.tipo_pago,
+      monto_pagado: createPedidoDto.monto_pagado,
+      monto_efectivo: createPedidoDto.monto_efectivo,
+      monto_qr: createPedidoDto.monto_qr,
+      comprobante_qr: createPedidoDto.comprobante_qr,
+    };
 
-    const pedidoData: Pedido = {
+    const tipoPago = cobro.tipo_pago || createPedidoDto.tipo_pago || 'Pendiente';
+    const isPagado =
+      createPedidoDto.cobrar_inmediato === true ||
+      (tipoPago && tipoPago !== 'Pendiente');
+
+    const montoPagado = Number(
+      cobro.monto_pagado ?? createPedidoDto.monto_pagado ?? (isPagado ? totalPedido : 0),
+    );
+    const montoEfectivo = Number(
+      cobro.monto_efectivo ?? createPedidoDto.monto_efectivo ?? (tipoPago === 'Efectivo' ? montoPagado : 0),
+    );
+    const montoQr = Number(
+      cobro.monto_qr ?? createPedidoDto.monto_qr ?? (tipoPago === 'QR' ? montoPagado : 0),
+    );
+    const montoCambio = Math.max(0, montoPagado - totalPedido);
+
+    const pedidoData: Pedido = this.pedidoRepository.create({
       nombre_cliente: createPedidoDto.nombre_cliente || 'Cliente',
-      usuario: createPedidoDto.id_usuario ? ({ id: createPedidoDto.id_usuario } as any) : undefined,
+      usuario: createPedidoDto.id_usuario ? ({ id: createPedidoDto.id_usuario } as any) : null,
       estado: isPagado ? ({ id: 2 } as any) : ({ id: 1 } as any),
       fecha_apertura: new Date(),
-      fecha_cierre: isPagado ? new Date() : undefined,
+      fecha_cierre: isPagado ? new Date() : null,
       total: totalPedido,
-      tipo_pago: cobro?.tipo_pago || 'Pendiente',
-      monto_pagado: cobro?.monto_pagado || (isPagado ? totalPedido : 0),
-      monto_cambio: cobro?.monto_pagado ? Math.max(0, cobro.monto_pagado - totalPedido) : 0,
-      monto_efectivo: cobro?.monto_efectivo || (cobro?.tipo_pago === 'Efectivo' ? (cobro.monto_pagado || totalPedido) : 0),
-      monto_qr: cobro?.monto_qr || (cobro?.tipo_pago === 'QR' ? totalPedido : 0),
-      comprobante_qr: cobro?.comprobante_qr || undefined,
+      tipo_pago: tipoPago,
+      monto_pagado: montoPagado,
+      monto_cambio: montoCambio,
+      monto_efectivo: montoEfectivo,
+      monto_qr: montoQr,
+      comprobante_qr: cobro.comprobante_qr || createPedidoDto.comprobante_qr || null,
       detalles: detallesEntidades,
-    } as unknown as Pedido;
+    } as any) as unknown as Pedido;
 
-    const pedidoGuardado: Pedido = await this.pedidoRepository.save(pedidoData);
+    const pedidoGuardado = await this.pedidoRepository.save(pedidoData);
 
     return await this.findOne(pedidoGuardado.id);
   }

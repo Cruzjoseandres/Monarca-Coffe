@@ -14,8 +14,8 @@ export class PedidoController {
   @Post()
   @Roles('ADMINISTRADOR', 'MESERO')
   async create(@Body() createPedidoDto: CreatePedidoDto, @Req() req) {
-    if (!createPedidoDto.id_usuario && req.user?.sub) {
-      createPedidoDto.id_usuario = req.user.sub;
+    if (!createPedidoDto.id_usuario && req.user) {
+      createPedidoDto.id_usuario = req.user.userId || req.user.sub || req.user.id;
     }
     return await this.pedidoService.create(createPedidoDto);
   }
@@ -35,7 +35,8 @@ export class PedidoController {
   @Get('mis-pedidos')
   @Roles('MESERO')
   async findMisPedidos(@Req() req) {
-    return await this.pedidoService.findMisPedidos(req.user.sub);
+    const userId = req.user?.userId || req.user?.sub || req.user?.id;
+    return await this.pedidoService.findMisPedidos(userId);
   }
 
   @Get(':id')
