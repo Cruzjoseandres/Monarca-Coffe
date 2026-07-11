@@ -17,12 +17,12 @@ const Header = () => {
     };
 
     return (
-        <Navbar variant="dark" expand="lg" className="sticky-top monarca-navbar" style={{ background: '#0B0F19', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', padding: '0.65rem 0' }}>
+        <Navbar expand="lg" className="sticky-top monarca-navbar" style={{ background: '#FFFFFF', borderBottom: '1px solid #E2E8F0', padding: '0.65rem 0' }}>
             <Container>
                 <Link className="navbar-brand font-weight-bold d-flex align-items-center gap-2" to={token ? (userInfo?.rol === 'ADMINISTRADOR' ? '/admin/pos' : '/mesero/pos') : '/menu'} style={{ textDecoration: 'none' }}>
                     <span className="material-symbols-outlined brand-icon" style={{ color: '#D97706', fontSize: '1.65rem' }}>local_cafe</span>
-                    <span style={{ fontWeight: 800, letterSpacing: '-0.5px', color: '#F8FAFC', fontSize: '1.25rem' }}>Monarca</span>
-                    <span style={{ fontWeight: 600, color: '#F59E0B', fontSize: '0.78rem', background: 'rgba(217, 119, 6, 0.15)', padding: '0.2rem 0.55rem', borderRadius: '6px' }}>POS Rápido</span>
+                    <span style={{ fontWeight: 800, letterSpacing: '-0.5px', color: '#0F172A', fontSize: '1.25rem' }}>Monarca</span>
+                    <span style={{ fontWeight: 700, color: '#D97706', fontSize: '0.75rem', background: '#FEF3C7', padding: '0.2rem 0.6rem', borderRadius: '8px' }}>POS Rápido</span>
                 </Link>
 
                 <div className="d-flex align-items-center ms-auto gap-2">

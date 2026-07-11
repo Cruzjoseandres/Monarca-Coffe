@@ -241,7 +241,7 @@ const PuntoDeVenta = () => {
                     alt={prod.nombre}
                     className="pos-card-img"
                     onError={(e) => {
-                      e.target.src = 'https://via.placeholder.com/200x150/1e222a/ffffff?text=Monarca+Café';
+                      e.target.src = 'https://via.placeholder.com/200x150/f8fafc/0f172a?text=Monarca+Coffee';
                     }}
                   />
                   {itemTicket && (
