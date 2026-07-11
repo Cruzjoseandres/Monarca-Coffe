@@ -15,8 +15,9 @@ const PuntoDeVenta = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   // Ticket actual
-  const [nombreCliente, setNombreCliente] = useState('Cliente Mostrador');
   const [ticketItems, setTicketItems] = useState([]);
+  // Estado del bottom sheet en móvil
+  const [ticketOpen, setTicketOpen] = useState(false);
 
   // Modales de cobro y confirmación
   const [modalCobro, setModalCobro] = useState(null); // 'EFECTIVO' | 'QR' | null
@@ -140,7 +141,7 @@ const PuntoDeVenta = () => {
       }));
 
       const payload = {
-        nombre_cliente: nombreCliente || 'Cliente Mostrador',
+        nombre_cliente: 'Cliente Mostrador',
         detalles: detallesPayload,
         cobrar_inmediato: tipoPago !== 'Pendiente',
         tipo_pago: tipoPago === 'Pendiente' ? undefined : tipoPago,
@@ -258,30 +259,31 @@ const PuntoDeVenta = () => {
         )}
       </div>
 
-      {/* PANEL DERECHO: TICKET EN MOSTRADOR */}
-      <div className="pos-ticket">
-        <div className="pos-ticket-header">
-          <h2 className="pos-ticket-title">Pedido Actual</h2>
-          {ticketItems.length > 0 && (
-            <button className="pos-ticket-clear" onClick={limpiarTicket}>
-              Limpiar todo
-            </button>
-          )}
-        </div>
+      {/* PANEL DERECHO / BOTTOM SHEET MÓVIL: TICKET */}
+      <div className={`pos-ticket${ticketOpen ? ' pos-ticket--open' : ''}`}>
+        {/* Handle del bottom sheet (solo móvil) */}
+        <button
+          className="pos-ticket-handle"
+          onClick={() => setTicketOpen((v) => !v)}
+          aria-label="Mostrar/Ocultar Ticket"
+        >
+          <div className="pos-ticket-handle-bar" />
+          <div className="pos-ticket-handle-info">
+            <span className="pos-ticket-handle-count">
+              {ticketItems.reduce((s, i) => s + i.cantidad, 0)} art.
+            </span>
+            <span className="pos-ticket-handle-total">
+              Bs. {totalTicket.toFixed(2)}
+            </span>
+          </div>
+          <span className="pos-ticket-handle-chevron">{ticketOpen ? '▼' : '▲'}</span>
+        </button>
 
-        <div className="pos-client-input">
-          <input
-            type="text"
-            placeholder="Nombre del Cliente (Opcional)"
-            value={nombreCliente}
-            onChange={(e) => setNombreCliente(e.target.value)}
-          />
-        </div>
-
+        {/* Items colapsables */}
         <div className="pos-items-list">
           {ticketItems.length === 0 ? (
-            <div style={{ textAlign: 'center', color: '#64748b', marginTop: '3rem' }}>
-              Selecciona productos del catálogo para armar el pedido rápidamente.
+            <div style={{ textAlign: 'center', color: '#64748b', padding: '1.5rem 1rem', fontSize: '0.88rem' }}>
+              Toca un producto para agregarlo al pedido.
             </div>
           ) : (
             ticketItems.map((item) => (
@@ -295,11 +297,9 @@ const PuntoDeVenta = () => {
                     className="pos-qty-btn"
                     onClick={() => modificarCantidad(item.id_producto, -1)}
                   >
-                    -
+                    −
                   </button>
-                  <span style={{ fontWeight: '700', minWidth: '22px', textAlign: 'center' }}>
-                    {item.cantidad}
-                  </span>
+                  <span className="pos-qty-val">{item.cantidad}</span>
                   <button
                     className="pos-qty-btn"
                     onClick={() => modificarCantidad(item.id_producto, 1)}
@@ -315,14 +315,19 @@ const PuntoDeVenta = () => {
           )}
         </div>
 
-        {/* PIE DEL TICKET CON COBRO 1 CLIC */}
+        {/* PIE DEL TICKET — SIEMPRE VISIBLE BOTONES DE COBRO */}
         <div className="pos-ticket-footer">
-          <div className="pos-summary-row">
-            <span>Artículos:</span>
-            <span>{ticketItems.reduce((s, i) => s + i.cantidad, 0)}</span>
-          </div>
+          {ticketItems.length > 0 && (
+            <button
+              className="pos-ticket-clear-inline"
+              onClick={limpiarTicket}
+            >
+              Limpiar todo
+            </button>
+          )}
+
           <div className="pos-summary-total">
-            <span>TOTAL A PAGAR:</span>
+            <span>TOTAL</span>
             <span>Bs. {totalTicket.toFixed(2)}</span>
           </div>
 
@@ -351,7 +356,7 @@ const PuntoDeVenta = () => {
             disabled={ticketItems.length === 0}
             onClick={() => handleCobrar('Pendiente')}
           >
-            ⏱️ Guardar Pedido Pendiente
+            ⏱️ Guardar Pendiente
           </button>
         </div>
       </div>
