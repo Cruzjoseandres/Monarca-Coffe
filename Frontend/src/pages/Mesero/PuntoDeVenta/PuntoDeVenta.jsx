@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { getAllProductos } from '../../../../services/ProductoService';
 import { getAllCategorias } from '../../../../services/CategoriaService';
-import { createPedido, cobrarPedido, generateWhatsAppPdf } from '../../../../services/PedidoService';
+import { createPedido, generateWhatsAppPdf } from '../../../../services/PedidoService';
 import './PuntoDeVenta.css';
 
 const PuntoDeVenta = () => {
@@ -10,157 +10,98 @@ const PuntoDeVenta = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Filtros del catálogo
   const [selectedCategoria, setSelectedCategoria] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Ticket actual
   const [ticketItems, setTicketItems] = useState([]);
-  // Estado del bottom sheet en móvil
   const [ticketOpen, setTicketOpen] = useState(false);
 
-  // Modales de cobro y confirmación
-  const [modalCobro, setModalCobro] = useState(null); // 'EFECTIVO' | 'QR' | null
+  const [modalCobro, setModalCobro] = useState(null);
   const [efectivoRecibido, setEfectivoRecibido] = useState('');
   const [procesando, setProcesando] = useState(false);
-  const [pedidoExitoso, setPedidoExitoso] = useState(null); // guarda el resultado para mostrar éxito
+  const [pedidoExitoso, setPedidoExitoso] = useState(null);
 
-  useEffect(() => {
-    fetchCatalogo();
-  }, []);
+  useEffect(() => { fetchCatalogo(); }, []);
 
   const fetchCatalogo = async () => {
     try {
       setLoading(true);
-      const [prodsData, catsData] = await Promise.all([
-        getAllProductos(),
-        getAllCategorias(),
-      ]);
+      const [prodsData, catsData] = await Promise.all([getAllProductos(), getAllCategorias()]);
       setProductos(prodsData || []);
       setCategorias(catsData || []);
     } catch (err) {
-      console.error('Error al cargar catálogo:', err);
       setError('No se pudieron cargar los productos.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Filtrado de productos en memoria
   const productosFiltrados = useMemo(() => {
     return productos.filter((prod) => {
-      // Verificar si coincide con categoría
-      const matchCat =
-        selectedCategoria === 'ALL' ||
-        (prod.categoria && prod.categoria.id === selectedCategoria);
-
-      // Verificar si coincide con búsqueda
-      const matchSearch =
-        !searchTerm.trim() ||
-        prod.nombre.toLowerCase().includes(searchTerm.toLowerCase().trim());
-
+      const matchCat = selectedCategoria === 'ALL' || (prod.categoria && prod.categoria.id === selectedCategoria);
+      const matchSearch = !searchTerm.trim() || prod.nombre.toLowerCase().includes(searchTerm.toLowerCase().trim());
       return matchCat && matchSearch;
     });
   }, [productos, selectedCategoria, searchTerm]);
 
-  // Cálculo del total
-  const totalTicket = useMemo(() => {
-    return ticketItems.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
-  }, [ticketItems]);
+  const totalTicket = useMemo(() => ticketItems.reduce((acc, item) => acc + item.precio * item.cantidad, 0), [ticketItems]);
 
-  // Manejo de items en el ticket
   const agregarAlTicket = (producto) => {
     setTicketItems((prev) => {
       const existe = prev.find((item) => item.id_producto === producto.id);
       if (existe) {
-        return prev.map((item) =>
-          item.id_producto === producto.id
-            ? { ...item, cantidad: item.cantidad + 1 }
-            : item
-        );
-      } else {
-        return [
-          ...prev,
-          {
-            id_producto: producto.id,
-            nombre: producto.nombre,
-            precio: parseFloat(producto.precio) || 0,
-            cantidad: 1,
-            observacion: '',
-          },
-        ];
+        return prev.map((item) => item.id_producto === producto.id ? { ...item, cantidad: item.cantidad + 1 } : item);
       }
+      return [...prev, { id_producto: producto.id, nombre: producto.nombre, precio: parseFloat(producto.precio) || 0, cantidad: 1, observacion: '' }];
     });
   };
 
   const modificarCantidad = (idProducto, delta) => {
-    setTicketItems((prev) => {
-      return prev
-        .map((item) => {
-          if (item.id_producto === idProducto) {
-            const nuevaCant = item.cantidad + delta;
-            return nuevaCant > 0 ? { ...item, cantidad: nuevaCant } : null;
-          }
-          return item;
-        })
-        .filter(Boolean);
-    });
-  };
-
-  const eliminarDelTicket = (idProducto) => {
-    setTicketItems((prev) => prev.filter((item) => item.id_producto !== idProducto));
+    setTicketItems((prev) =>
+      prev.map((item) => {
+        if (item.id_producto === idProducto) {
+          const nuevaCant = item.cantidad + delta;
+          return nuevaCant > 0 ? { ...item, cantidad: nuevaCant } : null;
+        }
+        return item;
+      }).filter(Boolean)
+    );
   };
 
   const limpiarTicket = () => {
     setTicketItems([]);
-    setNombreCliente('Cliente Mostrador');
     setEfectivoRecibido('');
+    setTicketOpen(false);
   };
 
-  // Cambio / Vuelto
   const montoRecibidoNum = parseFloat(efectivoRecibido) || 0;
   const cambioEfectivo = Math.max(0, montoRecibidoNum - totalTicket);
 
-  // Confirmar cobro e ingresar orden al backend
   const handleCobrar = async (tipoPago) => {
     if (ticketItems.length === 0) return;
-
     if (tipoPago === 'Efectivo' && montoRecibidoNum < totalTicket) {
-      alert('El monto en efectivo recibido es menor al total del pedido.');
+      alert('El monto recibido es menor al total del pedido.');
       return;
     }
-
     try {
       setProcesando(true);
-
-      const detallesPayload = ticketItems.map((item) => ({
-        id_producto: item.id_producto,
-        cantidad: item.cantidad,
-        precio_unitario: item.precio,
-        observaciones: item.observacion || '',
-      }));
-
       const payload = {
         nombre_cliente: 'Cliente Mostrador',
-        detalles: detallesPayload,
+        detalles: ticketItems.map((item) => ({
+          id_producto: item.id_producto,
+          cantidad: item.cantidad,
+          precio_unitario: item.precio,
+          observaciones: item.observacion || '',
+        })),
         cobrar_inmediato: tipoPago !== 'Pendiente',
         tipo_pago: tipoPago === 'Pendiente' ? undefined : tipoPago,
         monto_pagado: tipoPago === 'Efectivo' ? montoRecibidoNum : totalTicket,
       };
-
       const res = await createPedido(payload);
-      setPedidoExitoso({
-        id: res.id,
-        nombre_cliente: res.nombre_cliente,
-        total: totalTicket,
-        tipo_pago: tipoPago,
-        cambio: tipoPago === 'Efectivo' ? cambioEfectivo : 0,
-      });
-
+      setPedidoExitoso({ id: res.id, nombre_cliente: res.nombre_cliente, total: totalTicket, tipo_pago: tipoPago, cambio: tipoPago === 'Efectivo' ? cambioEfectivo : 0 });
       setModalCobro(null);
       limpiarTicket();
     } catch (err) {
-      console.error('Error al procesar el cobro:', err);
       alert('Hubo un error al registrar el pedido/cobro.');
     } finally {
       setProcesando(false);
@@ -170,43 +111,42 @@ const PuntoDeVenta = () => {
   const handlePdfWhatsApp = async (pedidoId) => {
     try {
       const url = await generateWhatsAppPdf(pedidoId);
-      if (url) {
-        window.open(url, '_blank');
-      }
-    } catch (err) {
-      console.error('Error al generar PDF de WhatsApp:', err);
+      if (url) window.open(url, '_blank');
+    } catch {
       alert('No se pudo generar el enlace de WhatsApp/PDF.');
     }
   };
 
+  const totalArt = ticketItems.reduce((s, i) => s + i.cantidad, 0);
+
   return (
-    <div className="pos-container">
-      {/* PANEL IZQUIERDO: CATÁLOGO */}
+    <div className="pos-wrapper">
+
+      {/* ══ CATÁLOGO ══ */}
       <div className="pos-catalog">
-        {/* BARRA SUPERIOR COMPACTA DE BÚSQUEDA */}
-        <div className="pos-top-toolbar">
-          <div className="pos-search" style={{ width: '100%' }}>
-            <input
-              type="text"
-              placeholder="🔍 Buscar producto por nombre o código..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+
+        {/* Buscador */}
+        <div className="pos-search-bar">
+          <input
+            type="text"
+            placeholder="Buscar producto..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
 
-        {/* CATEGORÍAS */}
-        <div className="pos-categories">
+        {/* Chips de categoría */}
+        <div className="pos-cats">
           <button
-            className={`pos-cat-btn ${selectedCategoria === 'ALL' ? 'active' : ''}`}
+            className={`pos-cat${selectedCategoria === 'ALL' ? ' active' : ''}`}
             onClick={() => setSelectedCategoria('ALL')}
           >
-            Todos los Productos
+            Todos
           </button>
           {categorias.map((cat) => (
             <button
               key={cat.id}
-              className={`pos-cat-btn ${selectedCategoria === cat.id ? 'active' : ''}`}
+              className={`pos-cat${selectedCategoria === cat.id ? ' active' : ''}`}
               onClick={() => setSelectedCategoria(cat.id)}
             >
               {cat.nombre}
@@ -214,299 +154,164 @@ const PuntoDeVenta = () => {
           ))}
         </div>
 
-        {/* GRILLA DE PRODUCTOS */}
+        {/* Grilla de productos */}
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>
-            Cargando menú ágil...
-          </div>
+          <div className="pos-msg">Cargando productos...</div>
         ) : error ? (
-          <div style={{ textAlign: 'center', padding: '3rem', color: '#f87171' }}>
-            {error}
-          </div>
+          <div className="pos-msg err">{error}</div>
         ) : productosFiltrados.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>
-            No se encontraron productos para esta búsqueda.
-          </div>
+          <div className="pos-msg">No hay productos aquí.</div>
         ) : (
           <div className="pos-grid">
             {productosFiltrados.map((prod) => {
-              const itemTicket = ticketItems.find((i) => i.id_producto === prod.id);
+              const inTicket = ticketItems.find((i) => i.id_producto === prod.id);
               return (
-                <div
+                <button
                   key={prod.id}
-                  className="pos-card"
+                  className={`pos-card${inTicket ? ' sel' : ''}`}
                   onClick={() => agregarAlTicket(prod)}
                 >
-                  <img
-                    src={prod.imagen || '/placeholder.png'}
-                    alt={prod.nombre}
-                    className="pos-card-img"
-                    onError={(e) => {
-                      e.target.src = 'https://via.placeholder.com/200x150/f8fafc/0f172a?text=Monarca+Coffee';
-                    }}
-                  />
-                  {itemTicket && (
-                    <div className="pos-card-badge">{itemTicket.cantidad}</div>
-                  )}
-                  <div className="pos-card-body">
-                    <div className="pos-card-name">{prod.nombre}</div>
-                    <div className="pos-card-price">Bs. {parseFloat(prod.precio).toFixed(2)}</div>
-                  </div>
-                </div>
+                  {inTicket && <span className="pos-badge">{inTicket.cantidad}</span>}
+                  <span className="pos-card-name">{prod.nombre}</span>
+                  <span className="pos-card-price">Bs. {parseFloat(prod.precio).toFixed(2)}</span>
+                </button>
               );
             })}
           </div>
         )}
       </div>
 
-      {/* PANEL DERECHO / BOTTOM SHEET MÓVIL: TICKET */}
-      <div className={`pos-ticket${ticketOpen ? ' pos-ticket--open' : ''}`}>
-        {/* Handle del bottom sheet (solo móvil) */}
-        <button
-          className="pos-ticket-handle"
-          onClick={() => setTicketOpen((v) => !v)}
-          aria-label="Mostrar/Ocultar Ticket"
-        >
-          <div className="pos-ticket-handle-bar" />
-          <div className="pos-ticket-handle-info">
-            <span className="pos-ticket-handle-count">
-              {ticketItems.reduce((s, i) => s + i.cantidad, 0)} art.
-            </span>
-            <span className="pos-ticket-handle-total">
-              Bs. {totalTicket.toFixed(2)}
-            </span>
+      {/* ══ TICKET / BOTTOM PANEL ══ */}
+      <aside className={`pos-ticket${ticketOpen ? ' open' : ''}`}>
+
+        {/* Pill handle (solo móvil) */}
+        <button className="pos-handle" onClick={() => setTicketOpen((v) => !v)} aria-label="Ver ticket">
+          <span className="pos-handle-pill" />
+          <div className="pos-handle-row">
+            <span className="pos-handle-items">{totalArt} {totalArt === 1 ? 'artículo' : 'artículos'}</span>
+            <span className="pos-handle-total">Bs. {totalTicket.toFixed(2)}</span>
+            <span className="pos-handle-chevron">{ticketOpen ? '▾' : '▴'}</span>
           </div>
-          <span className="pos-ticket-handle-chevron">{ticketOpen ? '▼' : '▲'}</span>
         </button>
 
-        {/* Items colapsables */}
-        <div className="pos-items-list">
+        {/* Lista de items (colapsable en móvil) */}
+        <div className="pos-items">
           {ticketItems.length === 0 ? (
-            <div style={{ textAlign: 'center', color: '#64748b', padding: '1.5rem 1rem', fontSize: '0.88rem' }}>
-              Toca un producto para agregarlo al pedido.
-            </div>
+            <p className="pos-empty">Toca un producto para agregarlo.</p>
           ) : (
             ticketItems.map((item) => (
               <div key={item.id_producto} className="pos-item">
                 <div className="pos-item-info">
-                  <div className="pos-item-name">{item.nombre}</div>
-                  <div className="pos-item-unit">Bs. {item.precio.toFixed(2)} c/u</div>
+                  <span className="pos-item-name">{item.nombre}</span>
+                  <span className="pos-item-unit">Bs. {item.precio.toFixed(2)} c/u</span>
                 </div>
-                <div className="pos-item-actions">
-                  <button
-                    className="pos-qty-btn"
-                    onClick={() => modificarCantidad(item.id_producto, -1)}
-                  >
-                    −
-                  </button>
-                  <span className="pos-qty-val">{item.cantidad}</span>
-                  <button
-                    className="pos-qty-btn"
-                    onClick={() => modificarCantidad(item.id_producto, 1)}
-                  >
-                    +
-                  </button>
+                <div className="pos-item-ctrl">
+                  <button className="pos-qty" onClick={() => modificarCantidad(item.id_producto, -1)}>−</button>
+                  <span className="pos-qty-n">{item.cantidad}</span>
+                  <button className="pos-qty" onClick={() => modificarCantidad(item.id_producto, 1)}>+</button>
                 </div>
-                <div className="pos-item-total">
-                  Bs. {(item.precio * item.cantidad).toFixed(2)}
-                </div>
+                <span className="pos-item-sub">Bs. {(item.precio * item.cantidad).toFixed(2)}</span>
               </div>
             ))
           )}
         </div>
 
-        {/* PIE DEL TICKET — SIEMPRE VISIBLE BOTONES DE COBRO */}
-        <div className="pos-ticket-footer">
-          {ticketItems.length > 0 && (
-            <button
-              className="pos-ticket-clear-inline"
-              onClick={limpiarTicket}
-            >
-              Limpiar todo
-            </button>
-          )}
-
-          <div className="pos-summary-total">
+        {/* Footer siempre visible */}
+        <div className="pos-footer">
+          <div className="pos-total">
             <span>TOTAL</span>
-            <span>Bs. {totalTicket.toFixed(2)}</span>
+            <strong>Bs. {totalTicket.toFixed(2)}</strong>
           </div>
-
-          <div className="pos-pay-grid">
+          <div className="pos-pay-row">
             <button
-              className="pos-btn-pay pos-btn-cash"
+              className="pos-pay cash"
               disabled={ticketItems.length === 0}
-              onClick={() => {
-                setEfectivoRecibido(totalTicket.toString());
-                setModalCobro('EFECTIVO');
-              }}
+              onClick={() => { setEfectivoRecibido(totalTicket.toString()); setModalCobro('EFECTIVO'); }}
             >
-              💵 Cobrar Efectivo
+              💵 Efectivo
             </button>
             <button
-              className="pos-btn-pay pos-btn-qr"
+              className="pos-pay qr"
               disabled={ticketItems.length === 0}
               onClick={() => setModalCobro('QR')}
             >
-              📱 Cobrar QR
+              📱 QR
             </button>
           </div>
-
-          <button
-            className="pos-btn-pending"
-            disabled={ticketItems.length === 0}
-            onClick={() => handleCobrar('Pendiente')}
-          >
-            ⏱️ Guardar Pendiente
+          <button className="pos-pending" disabled={ticketItems.length === 0} onClick={() => handleCobrar('Pendiente')}>
+            Guardar Pendiente
           </button>
+          {ticketItems.length > 0 && (
+            <button className="pos-clear" onClick={limpiarTicket}>Limpiar todo</button>
+          )}
         </div>
-      </div>
+      </aside>
 
-      {/* MODAL COBRO EFECTIVO */}
+      {/* ══ MODAL EFECTIVO ══ */}
       {modalCobro === 'EFECTIVO' && (
-        <div className="pos-modal-overlay">
+        <div className="pos-overlay">
           <div className="pos-modal">
-            <div className="pos-modal-title">💵 Cobro en Efectivo</div>
-            <div style={{ color: '#cbd5e1', marginBottom: '0.75rem' }}>
-              Total del pedido: <strong style={{ color: '#fff' }}>Bs. {totalTicket.toFixed(2)}</strong>
+            <h3 className="pos-mh">💵 Cobro en Efectivo</h3>
+            <p className="pos-ms">Total: <strong>Bs. {totalTicket.toFixed(2)}</strong></p>
+            <label className="pos-ml">Monto recibido (Bs.)</label>
+            <input type="number" className="pos-mi" value={efectivoRecibido} onChange={(e) => setEfectivoRecibido(e.target.value)} autoFocus />
+            <div className="pos-qrow">
+              <button className="pos-qbtn" onClick={() => setEfectivoRecibido(totalTicket.toString())}>Exacto</button>
+              <button className="pos-qbtn" onClick={() => setEfectivoRecibido('20')}>Bs. 20</button>
+              <button className="pos-qbtn" onClick={() => setEfectivoRecibido('50')}>Bs. 50</button>
+              <button className="pos-qbtn" onClick={() => setEfectivoRecibido('100')}>Bs. 100</button>
             </div>
-
-            <label style={{ fontSize: '0.85rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>
-              Monto recibido (Bs.):
-            </label>
-            <input
-              type="number"
-              className="pos-cash-input"
-              value={efectivoRecibido}
-              onChange={(e) => setEfectivoRecibido(e.target.value)}
-              autoFocus
-            />
-
-            <div className="pos-quick-cash">
-              <button
-                className="pos-quick-btn"
-                onClick={() => setEfectivoRecibido(totalTicket.toString())}
-              >
-                Exacto
-              </button>
-              <button className="pos-quick-btn" onClick={() => setEfectivoRecibido('20')}>
-                Bs. 20
-              </button>
-              <button className="pos-quick-btn" onClick={() => setEfectivoRecibido('50')}>
-                Bs. 50
-              </button>
-              <button className="pos-quick-btn" onClick={() => setEfectivoRecibido('100')}>
-                Bs. 100
-              </button>
+            <div className="pos-change">
+              <span>Vuelto</span>
+              <strong className="green">Bs. {cambioEfectivo.toFixed(2)}</strong>
             </div>
-
-            <div className="pos-change-box">
-              <div className="pos-change-label">Cambio / Vuelto a entregar:</div>
-              <div className="pos-change-val">Bs. {cambioEfectivo.toFixed(2)}</div>
-            </div>
-
-            <div className="pos-modal-actions">
-              <button
-                className="pos-btn-pending"
-                style={{ flex: 1 }}
-                onClick={() => setModalCobro(null)}
-              >
-                Cancelar
-              </button>
-              <button
-                className="pos-btn-pay pos-btn-cash"
-                style={{ flex: 1 }}
-                disabled={procesando || montoRecibidoNum < totalTicket}
-                onClick={() => handleCobrar('Efectivo')}
-              >
-                {procesando ? 'Procesando...' : 'Confirmar Cobro'}
+            <div className="pos-mrow">
+              <button className="pos-mcancel" onClick={() => setModalCobro(null)}>Cancelar</button>
+              <button className="pos-mconfirm cash" disabled={procesando || montoRecibidoNum < totalTicket} onClick={() => handleCobrar('Efectivo')}>
+                {procesando ? 'Procesando...' : 'Confirmar'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* MODAL COBRO QR */}
+      {/* ══ MODAL QR ══ */}
       {modalCobro === 'QR' && (
-        <div className="pos-modal-overlay">
-          <div className="pos-modal" style={{ textAlign: 'center' }}>
-            <div className="pos-modal-title" style={{ justifyContent: 'center' }}>
-              📱 Cobro QR Monarca
-            </div>
-            <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>
-              Muestra el código o verifica la transferencia por:
-            </p>
-            <div style={{ fontSize: '2rem', fontWeight: '800', color: '#fbbf24', margin: '1rem 0' }}>
-              Bs. {totalTicket.toFixed(2)}
-            </div>
-            <p style={{ color: '#cbd5e1', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
-              ¿El cliente completó exitosamente la transferencia QR?
-            </p>
-
-            <div className="pos-modal-actions">
-              <button
-                className="pos-btn-pending"
-                style={{ flex: 1 }}
-                onClick={() => setModalCobro(null)}
-              >
-                Volver
-              </button>
-              <button
-                className="pos-btn-pay pos-btn-qr"
-                style={{ flex: 1 }}
-                disabled={procesando}
-                onClick={() => handleCobrar('QR')}
-              >
-                {procesando ? 'Confirmando...' : 'Sí, Pago Confirmado'}
+        <div className="pos-overlay">
+          <div className="pos-modal center">
+            <h3 className="pos-mh">📱 Cobro QR</h3>
+            <div className="pos-big-total">Bs. {totalTicket.toFixed(2)}</div>
+            <p className="pos-ms">¿El cliente completó la transferencia?</p>
+            <div className="pos-mrow">
+              <button className="pos-mcancel" onClick={() => setModalCobro(null)}>Volver</button>
+              <button className="pos-mconfirm qr" disabled={procesando} onClick={() => handleCobrar('QR')}>
+                {procesando ? 'Confirmando...' : 'Sí, Confirmar'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* MODAL ÉXITO Y RECIBO WHATSAPP */}
+      {/* ══ MODAL ÉXITO ══ */}
       {pedidoExitoso && (
-        <div className="pos-modal-overlay">
-          <div className="pos-modal" style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>✅</div>
-            <div className="pos-modal-title" style={{ justifyContent: 'center' }}>
-              ¡Cobro Registrado!
-            </div>
-            <p style={{ color: '#cbd5e1', marginBottom: '1rem' }}>
-              Pedido #{pedidoExitoso.id} - <strong>{pedidoExitoso.nombre_cliente}</strong>
-            </p>
-            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px', marginBottom: '1.5rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-                <span style={{ color: '#94a3b8' }}>Total Cobrado:</span>
-                <span style={{ fontWeight: '700', color: '#fff' }}>Bs. {pedidoExitoso.total.toFixed(2)}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-                <span style={{ color: '#94a3b8' }}>Método:</span>
-                <span style={{ fontWeight: '700', color: '#fbbf24' }}>{pedidoExitoso.tipo_pago}</span>
-              </div>
+        <div className="pos-overlay">
+          <div className="pos-modal center">
+            <div className="pos-success">✅</div>
+            <h3 className="pos-mh">¡Cobro Registrado!</h3>
+            <p className="pos-ms">Pedido #{pedidoExitoso.id}</p>
+            <div className="pos-receipt">
+              <div className="pos-rrow"><span>Total</span><strong>Bs. {pedidoExitoso.total.toFixed(2)}</strong></div>
+              <div className="pos-rrow"><span>Método</span><strong>{pedidoExitoso.tipo_pago}</strong></div>
               {pedidoExitoso.tipo_pago === 'Efectivo' && (
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#94a3b8' }}>Cambio entregado:</span>
-                  <span style={{ fontWeight: '700', color: '#10b981' }}>Bs. {pedidoExitoso.cambio.toFixed(2)}</span>
-                </div>
+                <div className="pos-rrow"><span>Cambio</span><strong className="green">Bs. {pedidoExitoso.cambio.toFixed(2)}</strong></div>
               )}
             </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-              <button
-                className="pos-btn-pay"
-                style={{ background: '#25D366', color: '#fff', width: '100%' }}
-                onClick={() => handlePdfWhatsApp(pedidoExitoso.id)}
-              >
-                📲 Enviar Recibo por WhatsApp
-              </button>
-              <button
-                className="pos-btn-pending"
-                style={{ width: '100%' }}
-                onClick={() => setPedidoExitoso(null)}
-              >
-                Siguiente Pedido (Limpiar)
-              </button>
-            </div>
+            <button className="pos-pay cash" style={{ width: '100%', marginBottom: '0.6rem' }} onClick={() => handlePdfWhatsApp(pedidoExitoso.id)}>
+              📲 Enviar por WhatsApp
+            </button>
+            <button className="pos-pending" style={{ width: '100%' }} onClick={() => setPedidoExitoso(null)}>
+              Siguiente Pedido
+            </button>
           </div>
         </div>
       )}
