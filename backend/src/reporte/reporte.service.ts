@@ -16,12 +16,13 @@ export class ReporteService {
     async getVentasGenerales(startDate?: string, endDate?: string) {
         let query = this.pedidoRepository
             .createQueryBuilder('pedido')
+            .innerJoin('pedido.estado', 'estado')
             .select("TO_CHAR(pedido.updated_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/La_Paz', 'YYYY-MM-DD')", 'fecha')
             .addSelect('SUM(pedido.total)', 'total_ventas')
             .addSelect('COALESCE(SUM(pedido.monto_efectivo), 0)', 'total_efectivo')
             .addSelect('COALESCE(SUM(pedido.monto_qr), 0)', 'total_qr')
             .where('pedido.D_E_L_E_T_E_D = false')
-            .andWhere('pedido.estado = 2'); // SOLO PEDIDOS PAGADOS
+            .andWhere("estado.nombre IN ('PAGADO', 'COMPLETADO')");
 
         if (startDate && endDate) {
             query = query.andWhere("pedido.updated_at::date >= :startDate AND pedido.updated_at::date <= :endDate", { startDate, endDate });
@@ -49,11 +50,12 @@ export class ReporteService {
             .createQueryBuilder('dp')
             .innerJoin('dp.producto', 'producto')
             .innerJoin('dp.pedido', 'pedido')
+            .innerJoin('pedido.estado', 'estado')
             .select('producto.nombre', 'producto')
             .addSelect('SUM(dp.cantidad)', 'cantidad_vendida')
             .addSelect('SUM(dp.subtotal)', 'ingreso_generado')
             .where('dp.D_E_L_E_T_E_D = false')
-            .andWhere('pedido.estado = 2'); // Solo pedidos pagados
+            .andWhere("estado.nombre IN ('PAGADO', 'COMPLETADO')");
 
         if (startDate && endDate) {
             query = query.andWhere("pedido.updated_at::date >= :startDate AND pedido.updated_at::date <= :endDate", { startDate, endDate });
@@ -81,12 +83,13 @@ export class ReporteService {
             .createQueryBuilder('pedido')
             .innerJoin('pedido.usuario', 'usuario')
             .innerJoin('usuario.persona', 'persona')
+            .innerJoin('pedido.estado', 'estado')
             .select("CONCAT(persona.nombre, ' ', persona.apellido)", 'mesero')
             .addSelect('usuario.id', 'usuario_id')
             .addSelect('COUNT(pedido.id)', 'pedidos_atendidos')
             .addSelect('COALESCE(SUM(pedido.total), 0)', 'total_recaudado')
             .where('pedido.D_E_L_E_T_E_D = false')
-            .andWhere('pedido.estado = 2');
+            .andWhere("estado.nombre IN ('PAGADO', 'COMPLETADO')");
 
         if (startDate && endDate) {
             query = query.andWhere("pedido.created_at::date >= :startDate AND pedido.created_at::date <= :endDate", { startDate, endDate });
@@ -112,10 +115,10 @@ export class ReporteService {
     async getPedidosMeseroRendimiento(usuarioId: number, startDate?: string, endDate?: string) {
         let query = this.pedidoRepository
             .createQueryBuilder('pedido')
-            .leftJoinAndSelect('pedido.estado', 'estado')
+            .innerJoinAndSelect('pedido.estado', 'estado')
             .where('pedido.D_E_L_E_T_E_D = false')
             .andWhere('pedido.id_usuario = :usuarioId', { usuarioId })
-            .andWhere('pedido.estado = 2');
+            .andWhere("estado.nombre IN ('PAGADO', 'COMPLETADO')");
 
         if (startDate && endDate) {
             query = query.andWhere("pedido.created_at::date >= :startDate AND pedido.created_at::date <= :endDate", { startDate, endDate });
@@ -148,21 +151,22 @@ export class ReporteService {
         } else {
             const localNow = new Date(new Date().getTime() - (4 * 60 * 60 * 1000));
             const todayStr = localNow.toISOString().split('T')[0];
-            
+
             startOfDayUTC = new Date(`${todayStr}T00:00:00.000Z`);
             startOfDayUTC.setUTCHours(startOfDayUTC.getUTCHours() + 4);
-            
+
             endOfDayUTC = new Date(`${todayStr}T23:59:59.999Z`);
             endOfDayUTC.setUTCHours(endOfDayUTC.getUTCHours() + 4);
         }
 
         const ventasHoy = await this.pedidoRepository
             .createQueryBuilder('pedido')
+            .innerJoin('pedido.estado', 'estado')
             .select('SUM(pedido.total)', 'total_ventas')
             .addSelect('COALESCE(SUM(pedido.monto_efectivo), 0)', 'sum_efectivo')
             .addSelect('COALESCE(SUM(pedido.monto_qr), 0)', 'sum_qr')
             .where('pedido.D_E_L_E_T_E_D = false')
-            .andWhere('pedido.estado = 2')
+            .andWhere("estado.nombre IN ('PAGADO', 'COMPLETADO')")
             .andWhere('pedido.updated_at >= :startOfDay AND pedido.updated_at <= :endOfDay', { startOfDay: startOfDayUTC, endOfDay: endOfDayUTC })
             .getRawOne();
 
