@@ -52,23 +52,23 @@ export class PedidoService {
     const cobro = createPedidoDto.cobro;
     const isPagado = cobro && cobro.tipo_pago && cobro.tipo_pago !== 'Pendiente';
 
-    const nuevoPedido = this.pedidoRepository.create({
+    const pedidoData: Pedido = {
       nombre_cliente: createPedidoDto.nombre_cliente || 'Cliente',
-      usuario: createPedidoDto.id_usuario ? { id: createPedidoDto.id_usuario } : undefined,
-      estado: isPagado ? { id: 2 } : { id: 1 }, // 2 = PAGADO/COMPLETADO, 1 = PENDIENTE
+      usuario: createPedidoDto.id_usuario ? ({ id: createPedidoDto.id_usuario } as any) : undefined,
+      estado: isPagado ? ({ id: 2 } as any) : ({ id: 1 } as any),
       fecha_apertura: new Date(),
-      fecha_cierre: isPagado ? new Date() : null,
+      fecha_cierre: isPagado ? new Date() : undefined,
       total: totalPedido,
       tipo_pago: cobro?.tipo_pago || 'Pendiente',
       monto_pagado: cobro?.monto_pagado || (isPagado ? totalPedido : 0),
       monto_cambio: cobro?.monto_pagado ? Math.max(0, cobro.monto_pagado - totalPedido) : 0,
       monto_efectivo: cobro?.monto_efectivo || (cobro?.tipo_pago === 'Efectivo' ? (cobro.monto_pagado || totalPedido) : 0),
       monto_qr: cobro?.monto_qr || (cobro?.tipo_pago === 'QR' ? totalPedido : 0),
-      comprobante_qr: cobro?.comprobante_qr || null,
+      comprobante_qr: cobro?.comprobante_qr || undefined,
       detalles: detallesEntidades,
-    });
+    } as unknown as Pedido;
 
-    const pedidoGuardado = await this.pedidoRepository.save(nuevoPedido);
+    const pedidoGuardado: Pedido = await this.pedidoRepository.save(pedidoData);
 
     return await this.findOne(pedidoGuardado.id);
   }
