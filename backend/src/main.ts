@@ -5,7 +5,13 @@ import { join } from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  app.enableCors();
+
+  // Configuración de CORS habilitada para conectar el Frontend (Local, Render, Vercel, etc.)
+  app.enableCors({
+    origin: true, // Permite cualquier origen reflejando la petición
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+  });
   app.useStaticAssets(join(__dirname, '..', 'uploads'), {
     prefix: '/uploads/',
   });
