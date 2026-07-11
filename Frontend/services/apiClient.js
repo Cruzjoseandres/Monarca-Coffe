@@ -6,7 +6,7 @@ const apiClient = axios.create({
     baseURL: API_URL
 });
 
-// Helper para generar una clave de idempotencia determinista para solicitudes concurrentes o cercanas
+// Helper para generar una clave de idempotencia determinista y segura para cabeceras HTTP (sin saltos de línea ni caracteres especiales)
 const generateIdempotencyKey = (method, url, data) => {
     let serializedData = '';
     if (data instanceof FormData) {
@@ -24,7 +24,17 @@ const generateIdempotencyKey = (method, url, data) => {
     } else {
         serializedData = String(data || '');
     }
-    return `${method.toUpperCase()}:${url}:${serializedData}`;
+    
+    // Crear un hash determinista limpio para que el valor del header HTTP sea 100% válido (alfanumérico)
+    let hash = 0;
+    const fullString = `${method.toUpperCase()}:${url}:${serializedData}`;
+    for (let i = 0; i < fullString.length; i++) {
+        const char = fullString.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    const safeUrl = String(url || '').replace(/[^a-zA-Z0-9_-]/g, '');
+    return `${method.toUpperCase()}_${safeUrl}_${Math.abs(hash).toString(36)}_${fullString.length}`;
 };
 
 // Request interceptor to attach the token and Idempotency header
