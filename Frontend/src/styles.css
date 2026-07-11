@@ -1,23 +1,23 @@
 /* =========================================
-   CAFE PLATFORM - MODERN CAFÉ THEME (SINGLE PALETTE)
+   MONARCA COFFEE - MINIMALIST & PROFESSIONAL POS THEME
    ========================================= */
 
 :root {
-  /* Warm Café Theme Colors */
-  --cafe-bg: #FCFAF8; /* Soft Off-White/Crema */
+  /* Minimalist Crisp Theme Colors */
+  --cafe-bg: #F8FAFC; /* Clean Crisp Slate 50 */
   --cafe-surface: #FFFFFF;
   
-  /* Primary & Accents (Warm, organic) */
-  --cafe-primary: #B4420A; /* Darker Burnt Orange for white text visibility */
-  --cafe-primary-hover: #963507; 
-  --cafe-secondary: #78350F; /* Deep Coffee Brown */
-  --cafe-secondary-hover: #451A03;
+  /* Primary & Accents (Monarca Gold & Deep Slate) */
+  --cafe-primary: #D97706; /* Monarca Warm Amber Gold */
+  --cafe-primary-hover: #B45309; 
+  --cafe-secondary: #0F172A; /* Slate 900 Midnight */
+  --cafe-secondary-hover: #1E293B;
 
-  /* Semantic Colors (Earthy tones) */
-  --cafe-success: #166534; /* Forest Green */
-  --cafe-warning: #D97706; /* Same as primary to keep it uniform */
-  --cafe-danger: #991B1B; /* Dark red/burgundy */
-  --cafe-info: #D97706; /* Redirect info to primary for 1-palette feel */
+  /* Semantic Colors */
+  --cafe-success: #10B981; /* Crisp Emerald */
+  --cafe-warning: #F59E0B; /* Amber */
+  --cafe-danger: #EF4444; /* Clean Rose/Red */
+  --cafe-info: #3B82F6; /* Blue */
 
   /* Bootstrap Custom Variables Overrides */
   --bs-primary: var(--cafe-primary);
@@ -26,25 +26,25 @@
   --bs-warning: var(--cafe-warning);
   --bs-danger: var(--cafe-danger);
   --bs-info: var(--cafe-info);
-  --bs-dark: var(--cafe-secondary-hover);
-  --bs-light: #F3F4F6;
+  --bs-dark: var(--cafe-secondary);
+  --bs-light: #F1F5F9;
   
   /* Text Colors */
-  --text-main: #292524; /* Stone 800 - soft dark brown/black */
-  --text-muted: #78716C; /* Stone 500 */
+  --text-main: #0F172A; /* Slate 900 */
+  --text-muted: #64748B; /* Slate 500 */
 
   /* Utils */
-  --border-radius-xl: 20px;
-  --border-radius-lg: 16px;
-  --border-radius-md: 12px;
-  --border-radius-sm: 8px;
+  --border-radius-xl: 18px;
+  --border-radius-lg: 14px;
+  --border-radius-md: 10px;
+  --border-radius-sm: 6px;
   
-  --transition-fast: all 0.2s ease-in-out;
-  --transition-smooth: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  --shadow-sm: 0 2px 4px rgba(69, 26, 3, 0.05);
-  --shadow-md: 0 4px 12px rgba(69, 26, 3, 0.08); /* slight coffee hue shadow */
-  --shadow-lg: 0 10px 25px rgba(69, 26, 3, 0.1);
-  --border-subtle: rgba(120, 53, 15, 0.08);
+  --transition-fast: all 0.15s ease-in-out;
+  --transition-smooth: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 14px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 12px 30px rgba(15, 23, 42, 0.08);
+  --border-subtle: rgba(15, 23, 42, 0.08);
 }
 
 /* =========================================

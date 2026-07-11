@@ -78,11 +78,11 @@ const MenuPublico = () => {
 
             {/* Header */}
             <div className="menu-publico-header fade-in">
-                <h1 className="d-flex justify-content-center align-items-center gap-2">
-                    <span className="material-symbols-outlined text-primary" style={{ fontSize: '2rem' }}>coffee</span>
-                    Nuestro Menú
+                <h1 className="d-flex justify-content-center align-items-center gap-2" style={{ fontWeight: 800, color: '#0F172A' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '2.4rem', color: '#D97706' }}>local_cafe</span>
+                    Menú Monarca Coffee
                 </h1>
-                <p>Descubre lo que tenemos preparado para ti hoy</p>
+                <p style={{ color: '#64748B', fontWeight: 500 }}>Selección especial para pedido rápido en mostrador</p>
             </div>
 
 

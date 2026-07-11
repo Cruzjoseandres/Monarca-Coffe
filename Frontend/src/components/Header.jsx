@@ -17,11 +17,12 @@ const Header = () => {
     };
 
     return (
-        <Navbar bg="white" variant="light" expand="lg" className="sticky-top shadow-sm">
+        <Navbar bg="white" variant="light" expand="lg" className="sticky-top shadow-sm monarca-navbar">
             <Container>
-                <Link className="navbar-brand font-weight-bold" to={token ? (userInfo?.rol === 'ADMINISTRADOR' ? '/admin' : '/mesero/mesas') : '/login'} style={{ color: 'var(--cafe-primary)' }}>
-                    <span className="material-symbols-outlined brand-icon">coffee_maker</span>
-                    Cafetería
+                <Link className="navbar-brand font-weight-bold d-flex align-items-center gap-2" to={token ? (userInfo?.rol === 'ADMINISTRADOR' ? '/admin/pos' : '/mesero/pos') : '/menu'} style={{ color: 'var(--cafe-primary)' }}>
+                    <span className="material-symbols-outlined brand-icon" style={{ color: '#D97706' }}>local_cafe</span>
+                    <span style={{ fontWeight: 800, letterSpacing: '-0.5px' }}>Monarca</span>
+                    <span style={{ fontWeight: 500, opacity: 0.75, fontSize: '0.9rem' }}>Coffee POS</span>
                 </Link>
 
                 <div className="d-flex align-items-center ms-auto gap-2">

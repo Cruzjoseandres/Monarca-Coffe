@@ -17,11 +17,11 @@ const FormLogin = () => {
             <Card className="login-card">
                 <Card.Body>
                     <div className="text-center mb-4">
-                        <div className="login-icon-wrapper">
-                            <span className="material-symbols-outlined" style={{ fontSize: '3rem' }}>coffee_maker</span>
+                        <div className="login-icon-wrapper" style={{ background: 'rgba(217, 119, 6, 0.1)', color: '#D97706' }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '3rem' }}>local_cafe</span>
                         </div>
-                        <h2 className="mb-2">Cafetería</h2>
-                        <p className="text-muted-custom">Ingresa tus credenciales para acceder</p>
+                        <h2 className="mb-1" style={{ fontWeight: 800, color: '#0F172A' }}>Monarca Coffee</h2>
+                        <p className="text-muted-custom" style={{ fontSize: '0.9rem' }}>Sistema POS Rápido de Mostrador</p>
                     </div>
                     {error && <Alert variant="danger">{error}</Alert>}
 

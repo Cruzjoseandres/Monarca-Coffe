@@ -9,24 +9,24 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['el-cafe-comadre-logo-transparent.png'],
+      includeAssets: ['monarca-icon.svg'],
       manifest: {
-        name: 'CafeteriaPRD',
-        short_name: 'CafeteriaPRD',
-        description: 'Sistema de Gestión - Cafetería',
-        theme_color: '#ffffff',
-        background_color: '#ffffff',
+        name: 'Monarca Coffee POS',
+        short_name: 'MonarcaPOS',
+        description: 'Sistema POS de Venta Rápida - Monarca Coffee',
+        theme_color: '#0F172A',
+        background_color: '#0F172A',
         display: 'standalone',
         icons: [
           {
-            src: '/el-cafe-comadre-logo-transparent.png',
+            src: '/monarca-icon.svg',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/svg+xml'
           },
           {
-            src: '/el-cafe-comadre-logo-transparent.png',
+            src: '/monarca-icon.svg',
             sizes: '512x512',
-            type: 'image/png'
+            type: 'image/svg+xml'
           }
         ]
       }
