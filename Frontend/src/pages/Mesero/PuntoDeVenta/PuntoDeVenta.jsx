@@ -182,14 +182,12 @@ const PuntoDeVenta = () => {
     <div className="pos-container">
       {/* PANEL IZQUIERDO: CATÁLOGO */}
       <div className="pos-catalog">
-        <div className="pos-header">
-          <h1 className="pos-title">
-            ☕ Monarca POS <span style={{ fontSize: '0.8rem', color: '#fbbf24', fontWeight: '500' }}>Mostrador Rápido</span>
-          </h1>
-          <div className="pos-search">
+        {/* BARRA SUPERIOR COMPACTA DE BÚSQUEDA */}
+        <div className="pos-top-toolbar">
+          <div className="pos-search" style={{ width: '100%' }}>
             <input
               type="text"
-              placeholder="Buscar producto por nombre..."
+              placeholder="🔍 Buscar producto por nombre o código..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
