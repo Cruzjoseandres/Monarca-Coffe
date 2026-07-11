@@ -40,6 +40,9 @@ async function seed() {
             { nombre: 'DISPONIBLE', ambito: 'MESA', descripcion: 'Mesa disponible' },
             { nombre: 'OCUPADA', ambito: 'MESA', descripcion: 'Mesa ocupada' },
             { nombre: 'RESERVADA', ambito: 'MESA', descripcion: 'Mesa reservada' },
+            { nombre: 'PENDIENTE', ambito: 'PEDIDO', descripcion: 'Pedido pendiente de pago' },
+            { nombre: 'PAGADO', ambito: 'PEDIDO', descripcion: 'Pedido pagado' },
+            { nombre: 'COMPLETADO', ambito: 'PEDIDO', descripcion: 'Pedido completado' },
         ];
 
         for (const estado of estados) {

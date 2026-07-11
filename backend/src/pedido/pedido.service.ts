@@ -7,6 +7,7 @@ import { Producto } from '../producto/entities/producto.entity';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { Estado } from '../estado/entities/estado.entity';
 const PdfPrinter = require('pdfmake/js/Printer').default;
 const virtualfs = require('pdfmake/js/virtual-fs').default;
 const URLResolver = require('pdfmake/js/URLResolver').default;
@@ -20,13 +21,35 @@ export class PedidoService {
     private readonly detallePedidoRepository: Repository<DetallePedido>,
     @InjectRepository(Producto)
     private readonly productoRepository: Repository<Producto>,
+    @InjectRepository(Estado)
+    private readonly estadoRepository: Repository<Estado>,
     private readonly cloudinaryService: CloudinaryService,
   ) { }
+
+  private async getEstadoPorNombre(nombrePrincipal: string, nombreAlternativo?: string): Promise<Estado | undefined> {
+    let estado = await this.estadoRepository.findOne({
+      where: { nombre: nombrePrincipal, D_E_L_E_T_E_D: false },
+    });
+    if (!estado && nombreAlternativo) {
+      estado = await this.estadoRepository.findOne({
+        where: { nombre: nombreAlternativo, D_E_L_E_T_E_D: false },
+      });
+    }
+    if (!estado) {
+      const estados = await this.estadoRepository.find({
+        where: { D_E_L_E_T_E_D: false },
+        take: 1,
+      });
+      estado = estados[0];
+    }
+    return estado;
+  }
 
   async create(createPedidoDto: CreatePedidoDto) {
     try {
       let totalPedido = 0;
       const detallesEntidades: DetallePedido[] = [];
+      const estadoDetalle = await this.getEstadoPorNombre('ACTIVO', 'PENDIENTE');
 
       // Calcular ítems y subtotal si se enviaron detalles
       if (createPedidoDto.detalles && createPedidoDto.detalles.length > 0) {
@@ -44,7 +67,7 @@ export class PedidoService {
               cantidad: det.cantidad,
               subtotal: subtotal,
               comentario: det.comentario || det.observaciones || '',
-              estado: { id: 1 } as any,
+              estado: estadoDetalle ? ({ id: estadoDetalle.id } as any) : undefined,
             });
             detallesEntidades.push(detalle);
           }
@@ -64,6 +87,10 @@ export class PedidoService {
         createPedidoDto.cobrar_inmediato === true ||
         (tipoPago && tipoPago !== 'Pendiente');
 
+      const estadoPedido = isPagado
+        ? await this.getEstadoPorNombre('PAGADO', 'COMPLETADO')
+        : await this.getEstadoPorNombre('PENDIENTE', 'ACTIVO');
+
       const montoPagado = Number(
         cobro.monto_pagado ?? createPedidoDto.monto_pagado ?? (isPagado ? totalPedido : 0),
       );
@@ -78,7 +105,7 @@ export class PedidoService {
       const pedidoData: Pedido = this.pedidoRepository.create({
         nombre_cliente: createPedidoDto.nombre_cliente || 'Cliente',
         usuario: createPedidoDto.id_usuario ? ({ id: createPedidoDto.id_usuario } as any) : undefined,
-        estado: isPagado ? ({ id: 2 } as any) : ({ id: 1 } as any),
+        estado: estadoPedido ? ({ id: estadoPedido.id } as any) : undefined,
         fecha_apertura: new Date(),
         fecha_cierre: isPagado ? new Date() : undefined,
         total: totalPedido,
@@ -113,7 +140,10 @@ export class PedidoService {
     pedido.monto_efectivo = cobro?.monto_efectivo || (pedido.tipo_pago === 'Efectivo' ? montoPagado : 0);
     pedido.monto_qr = cobro?.monto_qr || (pedido.tipo_pago === 'QR' ? total : 0);
     pedido.comprobante_qr = cobro?.comprobante_qr || null;
-    pedido.estado = { id: 2 } as any; // PAGADO / COMPLETADO
+    const estadoPagado = await this.getEstadoPorNombre('PAGADO', 'COMPLETADO');
+    if (estadoPagado) {
+      pedido.estado = { id: estadoPagado.id } as any;
+    }
     pedido.fecha_cierre = new Date();
 
     await this.pedidoRepository.save(pedido);
