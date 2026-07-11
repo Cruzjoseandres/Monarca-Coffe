@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Pedido } from './entities/pedido.entity';
@@ -24,74 +24,82 @@ export class PedidoService {
   ) { }
 
   async create(createPedidoDto: CreatePedidoDto) {
-    let totalPedido = 0;
-    const detallesEntidades: DetallePedido[] = [];
+    try {
+      let totalPedido = 0;
+      const detallesEntidades: DetallePedido[] = [];
 
-    // Calcular ítems y subtotal si se enviaron detalles
-    if (createPedidoDto.detalles && createPedidoDto.detalles.length > 0) {
-      for (const det of createPedidoDto.detalles) {
-        const producto = await this.productoRepository.findOne({
-          where: { id: det.id_producto, D_E_L_E_T_E_D: false },
-        });
-        if (producto) {
-          const precio = Number(det.precio_unitario || producto.precio) || 0;
-          const subtotal = precio * det.cantidad;
-          totalPedido += subtotal;
-
-          const detalle = this.detallePedidoRepository.create({
-            producto: { id: producto.id },
-            cantidad: det.cantidad,
-            subtotal: subtotal,
-            comentario: det.comentario || det.observaciones || '',
+      // Calcular ítems y subtotal si se enviaron detalles
+      if (createPedidoDto.detalles && createPedidoDto.detalles.length > 0) {
+        for (const det of createPedidoDto.detalles) {
+          const producto = await this.productoRepository.findOne({
+            where: { id: det.id_producto, D_E_L_E_T_E_D: false },
           });
-          detallesEntidades.push(detalle);
+          if (producto) {
+            const precio = Number(det.precio_unitario ?? producto.precio) || 0;
+            const subtotal = precio * det.cantidad;
+            totalPedido += subtotal;
+
+            const detalle = this.detallePedidoRepository.create({
+              producto: { id: producto.id },
+              cantidad: det.cantidad,
+              subtotal: subtotal,
+              comentario: det.comentario || det.observaciones || '',
+              estado: { id: 1 } as any,
+            });
+            detallesEntidades.push(detalle);
+          }
         }
       }
+
+      const cobro = createPedidoDto.cobro || {
+        tipo_pago: createPedidoDto.tipo_pago,
+        monto_pagado: createPedidoDto.monto_pagado,
+        monto_efectivo: createPedidoDto.monto_efectivo,
+        monto_qr: createPedidoDto.monto_qr,
+        comprobante_qr: createPedidoDto.comprobante_qr,
+      };
+
+      const tipoPago = cobro.tipo_pago || createPedidoDto.tipo_pago || 'Pendiente';
+      const isPagado =
+        createPedidoDto.cobrar_inmediato === true ||
+        (tipoPago && tipoPago !== 'Pendiente');
+
+      const montoPagado = Number(
+        cobro.monto_pagado ?? createPedidoDto.monto_pagado ?? (isPagado ? totalPedido : 0),
+      );
+      const montoEfectivo = Number(
+        cobro.monto_efectivo ?? createPedidoDto.monto_efectivo ?? (tipoPago === 'Efectivo' ? montoPagado : 0),
+      );
+      const montoQr = Number(
+        cobro.monto_qr ?? createPedidoDto.monto_qr ?? (tipoPago === 'QR' ? montoPagado : 0),
+      );
+      const montoCambio = Math.max(0, montoPagado - totalPedido);
+
+      const pedidoData: Pedido = this.pedidoRepository.create({
+        nombre_cliente: createPedidoDto.nombre_cliente || 'Cliente',
+        usuario: createPedidoDto.id_usuario ? ({ id: createPedidoDto.id_usuario } as any) : undefined,
+        estado: isPagado ? ({ id: 2 } as any) : ({ id: 1 } as any),
+        fecha_apertura: new Date(),
+        fecha_cierre: isPagado ? new Date() : undefined,
+        total: totalPedido,
+        tipo_pago: tipoPago,
+        monto_pagado: montoPagado,
+        monto_cambio: montoCambio,
+        monto_efectivo: montoEfectivo,
+        monto_qr: montoQr,
+        comprobante_qr: cobro.comprobante_qr || createPedidoDto.comprobante_qr || undefined,
+        detalles: detallesEntidades,
+      } as any) as unknown as Pedido;
+
+      const pedidoGuardado = await this.pedidoRepository.save(pedidoData);
+
+      return await this.findOne(pedidoGuardado.id);
+    } catch (error) {
+      console.error('❌ Error al crear pedido en PedidoService.create:', error);
+      throw new InternalServerErrorException(
+        error?.detail || error?.message || 'Error al crear pedido en la base de datos',
+      );
     }
-
-    const cobro = createPedidoDto.cobro || {
-      tipo_pago: createPedidoDto.tipo_pago,
-      monto_pagado: createPedidoDto.monto_pagado,
-      monto_efectivo: createPedidoDto.monto_efectivo,
-      monto_qr: createPedidoDto.monto_qr,
-      comprobante_qr: createPedidoDto.comprobante_qr,
-    };
-
-    const tipoPago = cobro.tipo_pago || createPedidoDto.tipo_pago || 'Pendiente';
-    const isPagado =
-      createPedidoDto.cobrar_inmediato === true ||
-      (tipoPago && tipoPago !== 'Pendiente');
-
-    const montoPagado = Number(
-      cobro.monto_pagado ?? createPedidoDto.monto_pagado ?? (isPagado ? totalPedido : 0),
-    );
-    const montoEfectivo = Number(
-      cobro.monto_efectivo ?? createPedidoDto.monto_efectivo ?? (tipoPago === 'Efectivo' ? montoPagado : 0),
-    );
-    const montoQr = Number(
-      cobro.monto_qr ?? createPedidoDto.monto_qr ?? (tipoPago === 'QR' ? montoPagado : 0),
-    );
-    const montoCambio = Math.max(0, montoPagado - totalPedido);
-
-    const pedidoData: Pedido = this.pedidoRepository.create({
-      nombre_cliente: createPedidoDto.nombre_cliente || 'Cliente',
-      usuario: createPedidoDto.id_usuario ? ({ id: createPedidoDto.id_usuario } as any) : null,
-      estado: isPagado ? ({ id: 2 } as any) : ({ id: 1 } as any),
-      fecha_apertura: new Date(),
-      fecha_cierre: isPagado ? new Date() : null,
-      total: totalPedido,
-      tipo_pago: tipoPago,
-      monto_pagado: montoPagado,
-      monto_cambio: montoCambio,
-      monto_efectivo: montoEfectivo,
-      monto_qr: montoQr,
-      comprobante_qr: cobro.comprobante_qr || createPedidoDto.comprobante_qr || null,
-      detalles: detallesEntidades,
-    } as any) as unknown as Pedido;
-
-    const pedidoGuardado = await this.pedidoRepository.save(pedidoData);
-
-    return await this.findOne(pedidoGuardado.id);
   }
 
   async cobrarPedido(id: number, cobro: any) {
