@@ -1,0 +1,100 @@
+.mis-pedidos-container {
+    min-height: calc(100vh - 60px);
+    background-color: var(--background-color);
+}
+
+.history-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    border-radius: 12px;
+}
+
+.history-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-color: rgba(var(--primary-color-rgb), 0.3);
+}
+
+.status-badge-custom {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.status-activo {
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+    color: var(--bs-primary);
+}
+
+.status-inactivo {
+    background-color: rgba(var(--bs-success-rgb), 0.1);
+    color: var(--bs-success);
+}
+
+/* Herramientas de Filtrado */
+.filter-tools {
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(10px);
+}
+
+.search-box-custom {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-box-custom .search-icon {
+    position: absolute;
+    left: 12px;
+    color: var(--text-muted);
+}
+
+.search-box-custom input {
+    padding-left: 40px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+}
+
+.search-box-custom input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
+}
+
+.filter-tabs {
+    background: #f1f5f9;
+    padding: 4px;
+    border-radius: 12px;
+    display: inline-flex;
+}
+
+.filter-tab-btn {
+    border: none;
+    background: transparent;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #64748b;
+    transition: all 0.2s ease;
+}
+
+.filter-tab-btn:hover {
+    color: var(--primary-color);
+}
+
+.filter-tab-btn.active {
+    background: white;
+    color: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}

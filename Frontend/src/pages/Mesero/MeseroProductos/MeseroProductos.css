@@ -1,0 +1,42 @@
+.producto-card {
+    transition: var(--transition);
+    height: 100%;
+    overflow: hidden;
+}
+
+.producto-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
+
+.producto-card-img {
+    height: 180px;
+    object-fit: cover;
+}
+
+.producto-categoria {
+    font-size: 0.8rem;
+    color: var(--info-color);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: block;
+}
+
+.producto-desc {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.producto-precio {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--success-color);
+    margin-top: auto;
+}

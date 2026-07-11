@@ -1,0 +1,13 @@
+/* Estilos opcionales para RendimientoPersonal usando Light Theme */
+
+.personal-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(13, 110, 253, 0.08);
+    color: var(--neon-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(13, 110, 253, 0.15);
+}

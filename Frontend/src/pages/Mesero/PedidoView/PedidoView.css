@@ -1,0 +1,110 @@
+.pedido-view-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.action-buttons button {
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.bg-gradient-success {
+    background: linear-gradient(135deg, var(--cafe-success), #14532B);
+    border: none;
+}
+
+.bg-gradient-success:hover {
+    background: linear-gradient(135deg, #14532B, var(--cafe-success));
+}
+
+.custom-accordion .accordion-button {
+    font-weight: 500;
+    padding: 1.25rem;
+}
+
+.custom-accordion .accordion-item {
+    border: none;
+    overflow: hidden;
+}
+
+.custom-accordion .accordion-header {
+    background-color: white;
+}
+
+.btn-qty {
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+    padding: 0;
+}
+
+.total-pedido-container {
+    background: linear-gradient(to right, #f8f9fa, #e9ecef);
+    border-left: 5px solid var(--cafe-primary);
+}
+
+.scale-15 {
+    transform: scale(1.5);
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.transition-all {
+    transition: all 0.2s ease-in-out;
+}
+
+.grayscale {
+    filter: grayscale(100%);
+}
+
+.border-dashed {
+    border-style: dashed !important;
+    border-width: 2px !important;
+    border-color: #dee2e6 !important;
+}
+
+.checklist-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.checklist-container::-webkit-scrollbar-track {
+    background: #f1f1f1; 
+    border-radius: 10px;
+}
+ 
+.checklist-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1; 
+    border-radius: 10px;
+}
+
+.checklist-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8; 
+}
+
+/* Ocultar flechas del input number */
+.hide-arrows::-webkit-outer-spin-button,
+.hide-arrows::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.hide-arrows {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+@keyframes heartbeat {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.4); }
+    15% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(217, 119, 6, 0); }
+    30% { transform: scale(1); box-shadow: 0 0 0 0 rgba(217, 119, 6, 0); }
+}
+
+.heartbeat-btn {
+    animation: heartbeat 2.5s infinite;
+    transition: background-color 0.3s ease;
+}

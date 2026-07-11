@@ -1,0 +1,26 @@
+/* AdminUsuarios - Gestión de usuarios */
+
+.admin-usuarios-container {
+    padding: 2rem 0;
+}
+
+.admin-usuarios-container h1 {
+    color: #1f2937;
+    font-weight: 600;
+}
+
+/* Tabla */
+.admin-usuarios-container .table thead th {
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    color: white;
+    font-weight: 500;
+}
+
+.admin-usuarios-container .table tbody td {
+    vertical-align: middle;
+}
+
+/* Acciones */
+.admin-usuarios-container .d-flex.gap-2 .btn {
+    min-width: 70px;
+}

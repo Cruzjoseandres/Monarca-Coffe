@@ -1,0 +1,199 @@
+/* ========== MENU PÚBLICO ========== */
+
+/* ---------- Header ---------- */
+.menu-publico-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    padding: 2rem 1rem 1rem;
+}
+
+.menu-publico-header h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin-bottom: 0.25rem;
+    color: var(--text-main);
+}
+
+.menu-publico-header p {
+    color: var(--text-muted);
+    font-size: 1rem;
+    margin-bottom: 0;
+}
+
+
+
+.menu-category-chips {
+    display: flex;
+    gap: 0.6rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    position: sticky;
+    top: 76px; /* Acomoda debajo del Header en vista publica */
+    z-index: 1000;
+    background: var(--bg-main, #f8f9fa); /* Fondo solido para el sticky */
+    padding-top: 10px;
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+body.admin-body .menu-category-chips {
+    top: calc(-1 * var(--admin-padding-top, 2rem)); /* Cubrir todo el top de ser necesario */
+    padding-top: calc(var(--admin-padding-top, 2rem) + 10px); /* Bajar el contenido visual */
+    background: #f8f6f4; /* Mismo fondo de admin-theme */
+    z-index: 1050;
+    margin-left: calc(-1 * var(--admin-padding-x, 2rem));
+    margin-right: calc(-1 * var(--admin-padding-x, 2rem));
+    padding-left: calc(var(--admin-padding-x, 2rem) + 1rem); /* espaciado interno */
+    padding-right: var(--admin-padding-x, 2rem);
+    border-bottom: 1px solid rgba(0,0,0,0.05); /* Separador sutil */
+}
+
+.menu-category-chips::-webkit-scrollbar {
+    display: none;
+}
+
+.menu-chip {
+    flex-shrink: 0;
+    padding: 0.5rem 1.25rem;
+    border-radius: 999px;
+    border: 1px solid var(--glass-border-light);
+    background: var(--glass-bg);
+    color: var(--text-main);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.menu-chip:hover {
+    color: var(--cafe-primary);
+    background: rgba(180, 66, 10, 0.04);
+}
+
+.menu-chip.active {
+    background: var(--text-main);
+    border-color: var(--text-main);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ---------- Horizontal Product Cards ---------- */
+.menu-producto-item {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    gap: 1rem;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border-light);
+    border-radius: 16px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    height: 100%;
+}
+
+.menu-producto-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.menu-producto-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0; /* Ensures text truncation works */
+}
+
+.menu-producto-nombre {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 0.3rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.menu-producto-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
+}
+
+.menu-producto-precio {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-top: auto;
+}
+
+.menu-producto-img-wrapper {
+    width: 110px;
+    height: 110px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    background: #f3f4f6;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.menu-producto-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.35s ease;
+}
+
+.menu-producto-item:hover .menu-producto-img {
+    transform: scale(1.05);
+}
+
+.menu-sin-imagen-small {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+/* ---------- Category Heading ---------- */
+.menu-categoria-titulo {
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text-main);
+    margin-bottom: 1.25rem;
+    padding-top: 1rem;
+}
+
+.fw-600 { font-weight: 600; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 575px) {
+    .menu-publico-header { padding: 1.5rem 1rem 0.5rem; }
+    .menu-publico-header h1 { font-size: 1.8rem; }
+    
+    .menu-producto-img-wrapper {
+        width: 100px;
+        height: 100px;
+    }
+}

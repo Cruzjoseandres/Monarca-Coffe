@@ -1,0 +1,23 @@
+# ─── Backend ──────────────────────────────────────────────────
+backend/node_modules/
+backend/dist/
+backend/.env
+backend/.env.*
+backend/uploads/
+backend/*.log
+
+# ─── Frontend ─────────────────────────────────────────────────
+Frontend/node_modules/
+Frontend/dist/
+Frontend/.env
+Frontend/.env.*
+Frontend/*.log
+
+# ─── General ──────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/settings.json
+coverage/
+*.log
